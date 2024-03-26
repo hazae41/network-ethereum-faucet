@@ -22,6 +22,7 @@ export async function main(prefix = "") {
 
     FAUCET_CHAIN_ID = Deno.env.get(prefix + "FAUCET_CHAIN_ID"),
     FAUCET_CHAIN_URL = Deno.env.get(prefix + "FAUCET_CHAIN_URL"),
+    FAUCET_CONTRACT_ZERO_HEX = Deno.env.get(prefix + "FAUCET_CONTRACT_ZERO_HEX"),
     FAUCET_PRIVATE_KEY_ZERO_HEX = Deno.env.get(prefix + "FAUCET_PRIVATE_KEY_ZERO_HEX"),
 
     SIGNAL_SIGNALED_URL = Deno.env.get(prefix + "SIGNAL_SIGNALED_URL"),
@@ -35,6 +36,8 @@ export async function main(prefix = "") {
     throw new Error("FAUCET_CHAIN_ID is not set")
   if (FAUCET_CHAIN_URL == null)
     throw new Error("FAUCET_CHAIN_URL is not set")
+  if (FAUCET_CONTRACT_ZERO_HEX == null)
+    throw new Error("FAUCET_CONTRACT_ZERO_HEX is not set")
   if (FAUCET_PRIVATE_KEY_ZERO_HEX == null)
     throw new Error("FAUCET_PRIVATE_KEY_ZERO_HEX is not set")
 
@@ -42,13 +45,14 @@ export async function main(prefix = "") {
 
   const faucetChainId = FAUCET_CHAIN_ID
   const faucetChainUrl = FAUCET_CHAIN_URL
+  const faucetContractZeroHex = FAUCET_CONTRACT_ZERO_HEX
   const faucetPrivateKeyZeroHex = FAUCET_PRIVATE_KEY_ZERO_HEX
 
   const signalSignaledUrl = SIGNAL_SIGNALED_URL
 
   const [signalSignalerUrlList = []] = [SIGNAL_SIGNALER_URL_LIST?.split(",")]
 
-  return await serve({ networkPrivateKeyZeroHex, faucetChainId, faucetChainUrl, faucetPrivateKeyZeroHex, signalSignaledUrl, signalSignalerUrlList })
+  return await serve({ networkPrivateKeyZeroHex, faucetChainId, faucetChainUrl, faucetContractZeroHex, faucetPrivateKeyZeroHex, signalSignaledUrl, signalSignalerUrlList })
 }
 
 export interface ServerParams {
@@ -56,6 +60,7 @@ export interface ServerParams {
 
   readonly faucetChainId: string,
   readonly faucetChainUrl: string,
+  readonly faucetContractZeroHex: string,
   readonly faucetPrivateKeyZeroHex: string,
 
   readonly signalSignaledUrl?: string,
@@ -63,13 +68,12 @@ export interface ServerParams {
 }
 
 export async function serve(params: ServerParams) {
-  const { networkPrivateKeyZeroHex, faucetChainId, faucetChainUrl, faucetPrivateKeyZeroHex, signalSignaledUrl, signalSignalerUrlList } = params
+  const { networkPrivateKeyZeroHex, faucetChainId, faucetChainUrl, faucetContractZeroHex, faucetPrivateKeyZeroHex, signalSignaledUrl, signalSignalerUrlList } = params
 
   await initBundledOnce()
 
-  const chainIdString = "100"
+  const networkChainIdString = "100"
   const networkContractZeroHex = "0x0a4d5EFEa910Ea5E39be428A3d57B80BFAbA52f4"
-  const faucetContractZeroHex = "0x792417F63D6DA859504ee0630BF14db838918A2E"
 
   const networkProvider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
   const networkWallet = new Ethers.Wallet(networkPrivateKeyZeroHex).connect(networkProvider)
@@ -79,12 +83,12 @@ export async function serve(params: ServerParams) {
   const faucetWallet = new Ethers.Wallet(faucetPrivateKeyZeroHex).connect(faucetProvider)
   const faucetContract = new Ethers.Contract(faucetContractZeroHex, FaucetAbi, faucetWallet)
 
-  const chainIdNumber = Number(chainIdString)
-  const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
-  const chainIdMemory = base16_decode_mixed(chainIdBase16)
+  const networkChainIdNumber = Number(networkChainIdString)
+  const networkChainIdBase16 = networkChainIdNumber.toString(16).padStart(64, "0")
+  const networkChainIdMemory = base16_decode_mixed(networkChainIdBase16)
 
-  const contractBase16 = networkContractZeroHex.slice(2).padStart(64, "0")
-  const contractMemory = base16_decode_mixed(contractBase16)
+  const networkContractBase16 = networkContractZeroHex.slice(2).padStart(64, "0")
+  const networkContractMemory = base16_decode_mixed(networkContractBase16)
 
   const receiverZeroHex = networkWallet.address
   const receiverBase16 = receiverZeroHex.slice(2).padStart(64, "0")
@@ -95,7 +99,7 @@ export async function serve(params: ServerParams) {
   const nonceBase16 = base16_encode_lower(nonceMemory)
   const nonceZeroHex = `0x${nonceBase16}`
 
-  const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory, nonceMemory)
+  const mixinStruct = new NetworkMixin(networkChainIdMemory, networkContractMemory, receiverMemory, nonceMemory)
 
   const allSecretZeroHexSet = new Set<string>()
 
@@ -268,7 +272,7 @@ export async function serve(params: ServerParams) {
     }
 
     const onNetGet = async (_: RpcRequestInit) => {
-      return { chainIdString, contractZeroHex: networkContractZeroHex, receiverZeroHex, nonceZeroHex, minimumZeroHex: networkMinimumZeroHex }
+      return { chainIdString: networkChainIdString, contractZeroHex: networkContractZeroHex, receiverZeroHex, nonceZeroHex, minimumZeroHex: networkMinimumZeroHex }
     }
 
     const onNetTip = async (request: RpcRequestInit) => {

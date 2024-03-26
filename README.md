@@ -107,7 +107,7 @@ e.g. `./tls/fullchain.pem` and `./tls/privkey.pem`
 
 #### `NETWORK_PRIVATE_KEY_ZERO_HEX` (required)
 
-An Ethereum private key as a 0x-prefixed base16 string.
+Your Ethereum private key as a 0x-prefixed base16 string.
 
 Used to claim Network secrets and get Network tokens.
 
@@ -127,9 +127,21 @@ The HTTP URL to an RPC of the chain you want to setup your faucet on.
 
 e.g. `https://gnosis-rpc.publicnode.com` for Gnosis
 
+#### `FAUCET_CONTRACT_ZERO_HEX` (required)
+
+The faucet contract as a 0x-prefixed base16 string.
+
+It must be deployed on the chain you want to setup your faucet on.
+
+https://gnosisscan.io/address/0xd690625167fF08691D68187Ec542A38ffD416acD#code
+
+Just copy the code and deploy it on the chain you want.
+
+e.g. `0xd690625167fF08691D68187Ec542A38ffD416acD`
+
 #### `FAUCET_PRIVATE_KEY_ZERO_HEX` (required)
 
-An Ethereum private key as a 0x-prefixed base16 string.
+Your Ethereum private key as a 0x-prefixed base16 string.
 
 This account must have some gas on the chain you want to setup your faucet on.
 
