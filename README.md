@@ -137,7 +137,7 @@ https://gnosisscan.io/address/0xd690625167fF08691D68187Ec542A38ffD416acD#code
 
 Just copy the code and deploy it on the chain you want.
 
-e.g. `0xd690625167fF08691D68187Ec542A38ffD416acD`
+e.g. `0xd690625167fF08691D68187Ec542A38ffD416acD` for Gnosis
 
 #### `FAUCET_PRIVATE_KEY_ZERO_HEX` (required)
 
