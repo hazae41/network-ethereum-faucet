@@ -112,7 +112,7 @@ export async function serve(params: ServerParams) {
   let networkMinimumBase16 = networkMinimumBigInt.toString(16).padStart(64, "0")
   let networkMinimumZeroHex = `0x${networkMinimumBase16}`
 
-  let faucetMinimumBigInt = 1n
+  let faucetMinimumBigInt = 2n ** 24n
   let faucetMinimumBase16 = faucetMinimumBigInt.toString(16).padStart(64, "0")
   let faucetMinimumZeroHex = `0x${faucetMinimumBase16}`
 
@@ -193,7 +193,7 @@ export async function serve(params: ServerParams) {
       signal()
     }
 
-    await networkMutex.lock(async () => {
+    await faucetMutex.lock(async () => {
       if (backpressure) {
         faucetMinimumBigInt = faucetMinimumBigInt / 2n
         faucetMinimumBase16 = faucetMinimumBigInt.toString(16).padStart(64, "0")
@@ -215,7 +215,8 @@ export async function serve(params: ServerParams) {
           signal.addEventListener("abort", onAbort, { passive: true })
 
           console.log(`Sending`)
-          const responsePromise = faucetContract.send(receiverZeroHexArray, valueZeroHexArray, { nonce })
+          const totalValueBigInt = valueZeroHexArray.reduce((acc, valueZeroHex) => acc + BigInt(valueZeroHex), 0n)
+          const responsePromise = faucetContract.send(receiverZeroHexArray, valueZeroHexArray, { nonce, value: totalValueBigInt })
           const response = await Promise.race([responsePromise, rejectOnAbort.promise])
           const receipt = await Promise.race([response.wait(), rejectOnAbort.promise])
 
@@ -339,7 +340,7 @@ export async function serve(params: ServerParams) {
       pendingReceiverZeroHexArray.push(receiverZeroHex)
       pendingValueZeroHexArray.push(valueZeroHex)
 
-      if (pendingReceiverZeroHexArray.length > 10) {
+      if (pendingReceiverZeroHexArray.length > 0) {
         send(pendingReceiverZeroHexArray, pendingValueZeroHexArray).catch(warn)
 
         pendingReceiverZeroHexArray = new Array<string>()

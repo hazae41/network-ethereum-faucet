@@ -78,7 +78,7 @@ while (true) {
   while (balanceBigInt < minimumBigInt)
     await net_tip()
 
-  console.log(await requestOrThrow<unknown>({ method: "faucet_buy", params: ["0x792417F63D6DA859504ee0630BF14db838918A2E"] }))
+  console.log(await requestOrThrow<unknown>({ method: "faucet_buy", params: ["0xFF4BdfEbbf877627E02515B60B709F3Faf899884"] }))
 
   balanceBigInt = 0n
 }
